@@ -13,41 +13,49 @@
       font-family: sans-serif;
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
+      overflow: hidden; /* Evita barras de rolagem se o conteúdo exceder um pouco */
     }
     body {
       display: flex;
-      flex-direction: row;
+      flex-direction: row; /* Colunas lado a lado */
     }
     .column {
       display: flex;
       flex-direction: column;
-      flex: 1;
+      flex: 1; /* Cada coluna ocupa metade da largura */
+      height: 100vh; /* Cada coluna ocupa a altura total */
     }
     .cell {
-      flex: 1;
+      flex: 1; /* Cada célula ocupa espaço igual dentro de sua coluna */
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3.5em; /* Default font size */
+      font-size: 3.5em;
       font-weight: bold;
       border: 1px solid #222;
-      text-align: center; /* Ensure text is centered if it wraps */
-      padding: 5px; /* Add some padding */
+      text-align: center;
+      padding: 10px; /* Adiciona um pouco de preenchimento */
+      box-sizing: border-box; /* Garante que padding e border não aumentem o tamanho total */
+      line-height: 1.1; /* Melhora a legibilidade para textos maiores */
     }
     .orange { color: orange; }
-    .light-orange { color: #ffa500; } /* Same as orange, effectively */
+    .light-orange { color: #ffa500; }
     .green { color: #00ff66; }
     .blue { color: #66ccff; }
-    .purple { color: #cc99ff; } /* New color for min fee */
 
-    /* Adjust font size for cells in the second column if there are three items */
-    .column:nth-child(2) .cell {
-      font-size: 2.9em; /* Slightly smaller font for the column with 3 items */
+    /* Estilos para a célula combinada de bloco e taxa */
+    #block-info-cell {
+      flex-direction: column; /* Empilha o número do bloco e a taxa verticalmente */
+      line-height: 1.2; /* Ajusta o espaçamento entre linhas para os itens empilhados */
     }
-    /* If you want to target a specific cell for even smaller font, you can use its ID */
-    /* #min-fee { font-size: 2.5em; } */
-
+    #block-height-value {
+      /* O tamanho da fonte é herdado de .cell */
+    }
+    #fee-rate-value {
+      font-size: 0.6em; /* 60% do tamanho da fonte do elemento pai (.cell) */
+      margin-top: 8px; /* Espaço entre o número do bloco e a taxa */
+      color: #e0e0e0; /* Cor um pouco mais suave para a taxa, opcional */
+    }
   </style>
 </head>
 <body>
@@ -57,8 +65,10 @@
   </div>
   <div class="column">
     <div class="cell green" id="usd-brl">Carregando...</div>
-    <div class="cell blue" id="block-height">Carregando...</div>
-    <div class="cell purple" id="min-fee">Carregando...</div>
+    <div class="cell blue" id="block-info-cell">
+      <span id="block-height-value">Carregando...</span>
+      <span id="fee-rate-value"></span>
+    </div>
   </div>
 
   <script>
@@ -67,13 +77,13 @@
         btcUsd: null,
         usdBrl: null,
         blockHeight: null,
-        minFee: null,
+        currentFee: null, // Alterado de minFee para currentFee
       };
 
       // Cotação BTC/USDT (Binance)
       try {
         const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-        if (!btcRes.ok) throw new Error(`Binance API error: ${btcRes.status}`);
+        if (!btcRes.ok) throw new Error(`Binance API error: ${btcRes.status} ${btcRes.statusText}`);
         const btcJson = await btcRes.json();
         results.btcUsd = parseFloat(btcJson.price);
       } catch (e) {
@@ -83,7 +93,7 @@
       // Dólar para Real (AwesomeAPI)
       try {
         const usdbrlRes = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
-        if (!usdbrlRes.ok) throw new Error(`AwesomeAPI error: ${usdbrlRes.status}`);
+        if (!usdbrlRes.ok) throw new Error(`AwesomeAPI error: ${usdbrlRes.status} ${usdbrlRes.statusText}`);
         const usdbrlData = await usdbrlRes.json();
         if (usdbrlData && usdbrlData.USDBRL && usdbrlData.USDBRL.bid) {
           results.usdBrl = parseFloat(usdbrlData.USDBRL.bid);
@@ -97,8 +107,8 @@
       // Número do bloco da mempool.space
       try {
         const blockRes = await fetch('https://mempool.space/api/blocks/tip/height');
-        if (!blockRes.ok) throw new Error(`Mempool API (block height) error: ${blockRes.status}`);
-        const blockText = await blockRes.text(); // API returns plain text
+        if (!blockRes.ok) throw new Error(`Mempool API (block height) error: ${blockRes.status} ${blockRes.statusText}`);
+        const blockText = await blockRes.text();
         results.blockHeight = parseInt(blockText, 10);
         if (isNaN(results.blockHeight)) {
             throw new Error('Mempool API: Invalid block height format');
@@ -107,15 +117,20 @@
         console.error('Erro ao buscar altura do bloco:', e);
       }
 
-      // Taxas da rede Bitcoin (mempool.space)
+      // Taxas da rede Bitcoin (mempool.space) - Usando halfHourFee
       try {
         const feeRes = await fetch('https://mempool.space/api/v1/fees/recommended');
-        if (!feeRes.ok) throw new Error(`Mempool API (fees) error: ${feeRes.status}`);
+        if (!feeRes.ok) throw new Error(`Mempool API (fees) error: ${feeRes.status} ${feeRes.statusText}`);
         const feeJson = await feeRes.json();
-        if (feeJson && typeof feeJson.minimumFee !== 'undefined') {
-          results.minFee = feeJson.minimumFee;
+        if (feeJson && typeof feeJson.halfHourFee !== 'undefined') {
+          results.currentFee = Math.round(feeJson.halfHourFee); // Arredonda para o inteiro mais próximo
         } else {
-          throw new Error('Formato inesperado da resposta de taxas da Mempool API');
+          console.warn('halfHourFee não encontrada na resposta da API de taxas, tentando fastestFee.');
+          if (feeJson && typeof feeJson.fastestFee !== 'undefined') {
+            results.currentFee = Math.round(feeJson.fastestFee);
+          } else {
+            throw new Error('Formato inesperado ou taxas não encontradas na resposta da Mempool API');
+          }
         }
       } catch (e) {
         console.error('Erro ao buscar taxas da rede:', e);
@@ -125,7 +140,6 @@
     }
 
     function updateDOM(data) {
-      // Atualiza BTC/USD
       const btcUsdEl = document.getElementById('btc-usd');
       if (data.btcUsd !== null) {
         btcUsdEl.innerText = data.btcUsd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
@@ -133,7 +147,6 @@
         btcUsdEl.innerText = 'Erro';
       }
 
-      // Atualiza USD/BRL
       const usdBrlEl = document.getElementById('usd-brl');
       if (data.usdBrl !== null) {
         usdBrlEl.innerText = data.usdBrl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -141,7 +154,6 @@
         usdBrlEl.innerText = 'Erro';
       }
 
-      // Atualiza BTC/BRL (depende de btcUsd e usdBrl)
       const btcBrlEl = document.getElementById('btc-brl');
       if (data.btcUsd !== null && data.usdBrl !== null) {
         const btcBrl = data.btcUsd * data.usdBrl;
@@ -150,35 +162,54 @@
         btcBrlEl.innerText = 'Erro';
       }
 
-      // Atualiza Block Height
-      const blockHeightEl = document.getElementById('block-height');
+      const blockHeightEl = document.getElementById('block-height-value');
+      const feeRateEl = document.getElementById('fee-rate-value');
+
       if (data.blockHeight !== null) {
         blockHeightEl.innerText = '🔗 ' + data.blockHeight.toLocaleString('pt-BR');
       } else {
-        blockHeightEl.innerText = 'Erro';
+        blockHeightEl.innerText = 'Erro Bloco';
+        blockHeightEl.style.fontSize = "0.8em"; // Reduzir um pouco se for erro
       }
 
-      // Atualiza Taxa Mínima
-      const minFeeEl = document.getElementById('min-fee');
-      if (data.minFee !== null) {
-        minFeeEl.innerText = data.minFee.toLocaleString('pt-BR') + ' sat/vB';
+      if (data.currentFee !== null) {
+        feeRateEl.innerText = data.currentFee.toLocaleString('pt-BR') + ' sat/vB';
       } else {
-        minFeeEl.innerText = 'Erro';
+        // Não exibe "Erro" para a taxa se o bloco já deu erro, ou exibe um erro específico para taxa
+        feeRateEl.innerText = 'Erro Taxa'; 
+      }
+      
+      // Se ambos falharem, a célula #block-info-cell já tem "Carregando..." como fallback inicial
+      // ou podemos limpar os spans se preferir
+      if(data.blockHeight === null && data.currentFee === null) {
+        blockHeightEl.innerText = 'Erro Dados';
+        feeRateEl.innerText = ''; // Limpa a taxa se o bloco também falhou
       }
     }
 
     async function atualizar() {
+      // Define o texto inicial para "Carregando..." nos spans corretos
+      document.getElementById('btc-usd').innerText = 'Carregando...';
+      document.getElementById('btc-brl').innerText = 'Carregando...';
+      document.getElementById('usd-brl').innerText = 'Carregando...';
+      
+      const blockHeightEl = document.getElementById('block-height-value');
+      const feeRateEl = document.getElementById('fee-rate-value');
+      
+      // Só mostra "Carregando..." se ainda não houver dados (ou se for a primeira carga)
+      if (!blockHeightEl.textContent || blockHeightEl.textContent.includes('Erro') || blockHeightEl.textContent === 'Carregando...') {
+        blockHeightEl.innerText = 'Carregando...';
+        blockHeightEl.style.fontSize = ""; // Reseta o tamanho da fonte
+      }
+      if (!feeRateEl.textContent || feeRateEl.textContent.includes('Erro')) {
+         feeRateEl.innerText = ''; // Inicialmente vazio, será preenchido ou mostrará erro de taxa
+      }
+
       const data = await fetchData();
       updateDOM(data);
     }
 
-    // Define o texto inicial para "Carregando..." em todas as células
-    document.getElementById('btc-usd').innerText = 'Carregando...';
-    document.getElementById('btc-brl').innerText = 'Carregando...';
-    document.getElementById('usd-brl').innerText = 'Carregando...';
-    document.getElementById('block-height').innerText = 'Carregando...';
-    document.getElementById('min-fee').innerText = 'Carregando...';
-
+    // Chamada inicial para popular os dados
     atualizar();
     setInterval(atualizar, 60000); // Atualiza a cada 1 minuto
   </script>
