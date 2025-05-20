@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTC Painel</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .row {
+      display: flex;
+      flex: 1;
+    }
+    .cell {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3.5em;
+      font-weight: bold;
+      border: 1px solid #222;
+    }
+    .orange { color: orange; }
+    .light-orange { color: #ffa500; }
+    .green { color: #00ff66; }
+    .blue { color: #66ccff; }
+  </style>
+</head>
+<body>
+  <div class="row">
+    <div class="cell orange" id="btc-usd">106.279</div>
+    <div class="cell green" id="usd-brl">5.65</div>
+  </div>
+  <div class="row">
+    <div class="cell light-orange" id="btc-brl">600.398</div>
+    <div class="cell blue" id="block-height">🔗 897.597</div>
+  </div>
+
+  <script>
+    async function atualizar() {
+      try {
+        // Cotação BTC/USDT (Binance)
+        const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+        const btcJson = await btcRes.json();
+        const btc = parseFloat(btcJson.price);
+
+        // Dólar para real (conversão manual)
+        const usdbrl = 5.65;
+
+        // BTC em real
+        const btcbrl = btc * usdbrl;
+
+        // Número do bloco da mempool.space
+        const blockRes = await fetch('https://mempool.space/api/blocks/tip/height');
+        const block = await blockRes.json();
+
+        // Atualiza os campos
+        document.getElementById('btc-usd').innerText = btc.toLocaleString('pt-BR', {maximumFractionDigits: 0});
+        document.getElementById('usd-brl').innerText = usdbrl.toFixed(2);
+        document.getElementById('btc-brl').innerText = btcbrl.toLocaleString('pt-BR', {maximumFractionDigits: 0});
+        document.getElementById('block-height').innerText = '🔗 ' + block.toLocaleString('pt-BR');
+      } catch (e) {
+        console.error('Erro ao atualizar:', e);
+      }
+    }
+
+    atualizar();
+    setInterval(atualizar, 60000); // Atualiza a cada 1 minuto
+  </script>
+</body>
+</html>
