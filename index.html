@@ -18,13 +18,6 @@
     body {
       display: flex;
       flex-direction: row;
-      transform: rotate(90deg);
-      transform-origin: left top;
-      width: 100vh;
-      height: 100vw;
-      position: absolute;
-      top: 0;
-      left: 0;
     }
     .column {
       display: flex;
@@ -36,55 +29,155 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 4em;
+      font-size: 3.5em; /* Default font size */
       font-weight: bold;
       border: 1px solid #222;
+      text-align: center; /* Ensure text is centered if it wraps */
+      padding: 5px; /* Add some padding */
     }
     .orange { color: orange; }
-    .light-orange { color: #ffa500; }
+    .light-orange { color: #ffa500; } /* Same as orange, effectively */
     .green { color: #00ff66; }
     .blue { color: #66ccff; }
+    .purple { color: #cc99ff; } /* New color for min fee */
+
+    /* Adjust font size for cells in the second column if there are three items */
+    .column:nth-child(2) .cell {
+      font-size: 2.9em; /* Slightly smaller font for the column with 3 items */
+    }
+    /* If you want to target a specific cell for even smaller font, you can use its ID */
+    /* #min-fee { font-size: 2.5em; } */
+
   </style>
 </head>
 <body>
   <div class="column">
-    <div class="cell orange" id="btc-usd">106.279</div>
-    <div class="cell light-orange" id="btc-brl">600.398</div>
+    <div class="cell orange" id="btc-usd">Carregando...</div>
+    <div class="cell light-orange" id="btc-brl">Carregando...</div>
   </div>
   <div class="column">
-    <div class="cell green" id="usd-brl">5.65</div>
-    <div class="cell blue" id="block-height">🔗 897.597</div>
+    <div class="cell green" id="usd-brl">Carregando...</div>
+    <div class="cell blue" id="block-height">Carregando...</div>
+    <div class="cell purple" id="min-fee">Carregando...</div>
   </div>
 
   <script>
-    async function atualizar() {
+    async function fetchData() {
+      const results = {
+        btcUsd: null,
+        usdBrl: null,
+        blockHeight: null,
+        minFee: null,
+      };
+
+      // Cotação BTC/USDT (Binance)
       try {
-        // BTC/USD
-        const btcusdRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-        const btcusdJson = await btcusdRes.json();
-        const btcusd = parseFloat(btcusdJson.price);
-
-        // BTC/BRL direto da Binance
-        const btcbrlRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCBRL');
-        const btcbrlJson = await btcbrlRes.json();
-        const btcbrl = parseFloat(btcbrlJson.price);
-
-        // Dólar manual (temporário, ou substituir por API real)
-        const usdbrl = btcbrl / btcusd;
-
-        // Número do bloco da mempool.space
-        const blockRes = await fetch('https://mempool.space/api/blocks/tip/height');
-        const block = await blockRes.json();
-
-        // Atualiza os campos
-        document.getElementById('btc-usd').innerText = btcusd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-        document.getElementById('btc-brl').innerText = btcbrl.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-        document.getElementById('usd-brl').innerText = usdbrl.toFixed(2);
-        document.getElementById('block-height').innerText = '🔗 ' + block.toLocaleString('pt-BR');
+        const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+        if (!btcRes.ok) throw new Error(`Binance API error: ${btcRes.status}`);
+        const btcJson = await btcRes.json();
+        results.btcUsd = parseFloat(btcJson.price);
       } catch (e) {
-        console.error('Erro ao atualizar:', e);
+        console.error('Erro ao buscar BTC/USD:', e);
+      }
+
+      // Dólar para Real (AwesomeAPI)
+      try {
+        const usdbrlRes = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL');
+        if (!usdbrlRes.ok) throw new Error(`AwesomeAPI error: ${usdbrlRes.status}`);
+        const usdbrlData = await usdbrlRes.json();
+        if (usdbrlData && usdbrlData.USDBRL && usdbrlData.USDBRL.bid) {
+          results.usdBrl = parseFloat(usdbrlData.USDBRL.bid);
+        } else {
+          throw new Error('Formato inesperado da resposta USD/BRL da AwesomeAPI');
+        }
+      } catch (e) {
+        console.error('Erro ao buscar USD/BRL:', e);
+      }
+
+      // Número do bloco da mempool.space
+      try {
+        const blockRes = await fetch('https://mempool.space/api/blocks/tip/height');
+        if (!blockRes.ok) throw new Error(`Mempool API (block height) error: ${blockRes.status}`);
+        const blockText = await blockRes.text(); // API returns plain text
+        results.blockHeight = parseInt(blockText, 10);
+        if (isNaN(results.blockHeight)) {
+            throw new Error('Mempool API: Invalid block height format');
+        }
+      } catch (e) {
+        console.error('Erro ao buscar altura do bloco:', e);
+      }
+
+      // Taxas da rede Bitcoin (mempool.space)
+      try {
+        const feeRes = await fetch('https://mempool.space/api/v1/fees/recommended');
+        if (!feeRes.ok) throw new Error(`Mempool API (fees) error: ${feeRes.status}`);
+        const feeJson = await feeRes.json();
+        if (feeJson && typeof feeJson.minimumFee !== 'undefined') {
+          results.minFee = feeJson.minimumFee;
+        } else {
+          throw new Error('Formato inesperado da resposta de taxas da Mempool API');
+        }
+      } catch (e) {
+        console.error('Erro ao buscar taxas da rede:', e);
+      }
+      
+      return results;
+    }
+
+    function updateDOM(data) {
+      // Atualiza BTC/USD
+      const btcUsdEl = document.getElementById('btc-usd');
+      if (data.btcUsd !== null) {
+        btcUsdEl.innerText = data.btcUsd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+      } else {
+        btcUsdEl.innerText = 'Erro';
+      }
+
+      // Atualiza USD/BRL
+      const usdBrlEl = document.getElementById('usd-brl');
+      if (data.usdBrl !== null) {
+        usdBrlEl.innerText = data.usdBrl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      } else {
+        usdBrlEl.innerText = 'Erro';
+      }
+
+      // Atualiza BTC/BRL (depende de btcUsd e usdBrl)
+      const btcBrlEl = document.getElementById('btc-brl');
+      if (data.btcUsd !== null && data.usdBrl !== null) {
+        const btcBrl = data.btcUsd * data.usdBrl;
+        btcBrlEl.innerText = btcBrl.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+      } else {
+        btcBrlEl.innerText = 'Erro';
+      }
+
+      // Atualiza Block Height
+      const blockHeightEl = document.getElementById('block-height');
+      if (data.blockHeight !== null) {
+        blockHeightEl.innerText = '🔗 ' + data.blockHeight.toLocaleString('pt-BR');
+      } else {
+        blockHeightEl.innerText = 'Erro';
+      }
+
+      // Atualiza Taxa Mínima
+      const minFeeEl = document.getElementById('min-fee');
+      if (data.minFee !== null) {
+        minFeeEl.innerText = data.minFee.toLocaleString('pt-BR') + ' sat/vB';
+      } else {
+        minFeeEl.innerText = 'Erro';
       }
     }
+
+    async function atualizar() {
+      const data = await fetchData();
+      updateDOM(data);
+    }
+
+    // Define o texto inicial para "Carregando..." em todas as células
+    document.getElementById('btc-usd').innerText = 'Carregando...';
+    document.getElementById('btc-brl').innerText = 'Carregando...';
+    document.getElementById('usd-brl').innerText = 'Carregando...';
+    document.getElementById('block-height').innerText = 'Carregando...';
+    document.getElementById('min-fee').innerText = 'Carregando...';
 
     atualizar();
     setInterval(atualizar, 60000); // Atualiza a cada 1 minuto
