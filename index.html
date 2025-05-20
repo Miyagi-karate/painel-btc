@@ -13,30 +13,27 @@
       font-family: sans-serif;
       width: 100vw;
       height: 100vh;
-      overflow: hidden; /* Evita barras de rolagem se o conteúdo exceder um pouco */
+      overflow: hidden; /* Evita barras de rolagem */
     }
     body {
       display: flex;
-      flex-direction: row; /* Colunas lado a lado */
+      flex-direction: column; /* MUDANÇA: Itens empilhados verticalmente */
+      height: 100vh; /* Garante que o body ocupe toda a altura */
     }
-    .column {
-      display: flex;
-      flex-direction: column;
-      flex: 1; /* Cada coluna ocupa metade da largura */
-      height: 100vh; /* Cada coluna ocupa a altura total */
-    }
+    /* .column não é mais necessário para o layout principal */
+
     .cell {
-      flex: 1; /* Cada célula ocupa espaço igual dentro de sua coluna */
+      flex: 1; /* Cada célula ocupa espaço vertical igual */
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3.5em;
+      font-size: 3em; /* MUDANÇA: Reduzido um pouco para acomodar 4 itens na vertical */
       font-weight: bold;
       border: 1px solid #222;
       text-align: center;
-      padding: 10px; /* Adiciona um pouco de preenchimento */
-      box-sizing: border-box; /* Garante que padding e border não aumentem o tamanho total */
-      line-height: 1.1; /* Melhora a legibilidade para textos maiores */
+      padding: 10px;
+      box-sizing: border-box;
+      line-height: 1.1;
     }
     .orange { color: orange; }
     .light-orange { color: #ffa500; }
@@ -46,29 +43,26 @@
     /* Estilos para a célula combinada de bloco e taxa */
     #block-info-cell {
       flex-direction: column; /* Empilha o número do bloco e a taxa verticalmente */
-      line-height: 1.2; /* Ajusta o espaçamento entre linhas para os itens empilhados */
+      line-height: 1.2;
     }
     #block-height-value {
       /* O tamanho da fonte é herdado de .cell */
     }
     #fee-rate-value {
       font-size: 0.6em; /* 60% do tamanho da fonte do elemento pai (.cell) */
-      margin-top: 8px; /* Espaço entre o número do bloco e a taxa */
-      color: #e0e0e0; /* Cor um pouco mais suave para a taxa, opcional */
+      margin-top: 8px;
+      color: #e0e0e0;
     }
   </style>
 </head>
 <body>
-  <div class="column">
-    <div class="cell orange" id="btc-usd">Carregando...</div>
-    <div class="cell light-orange" id="btc-brl">Carregando...</div>
-  </div>
-  <div class="column">
-    <div class="cell green" id="usd-brl">Carregando...</div>
-    <div class="cell blue" id="block-info-cell">
-      <span id="block-height-value">Carregando...</span>
-      <span id="fee-rate-value"></span>
-    </div>
+  <!-- MUDANÇA: Ordem e estrutura para coluna única -->
+  <div class="cell orange" id="btc-usd">Carregando...</div>
+  <div class="cell green" id="usd-brl">Carregando...</div>
+  <div class="cell light-orange" id="btc-brl">Carregando...</div>
+  <div class="cell blue" id="block-info-cell">
+    <span id="block-height-value">Carregando...</span>
+    <span id="fee-rate-value"></span>
   </div>
 
   <script>
@@ -77,7 +71,7 @@
         btcUsd: null,
         usdBrl: null,
         blockHeight: null,
-        currentFee: null, // Alterado de minFee para currentFee
+        currentFee: null,
       };
 
       // Cotação BTC/USDT (Binance)
@@ -123,7 +117,7 @@
         if (!feeRes.ok) throw new Error(`Mempool API (fees) error: ${feeRes.status} ${feeRes.statusText}`);
         const feeJson = await feeRes.json();
         if (feeJson && typeof feeJson.halfHourFee !== 'undefined') {
-          results.currentFee = Math.round(feeJson.halfHourFee); // Arredonda para o inteiro mais próximo
+          results.currentFee = Math.round(feeJson.halfHourFee);
         } else {
           console.warn('halfHourFee não encontrada na resposta da API de taxas, tentando fastestFee.');
           if (feeJson && typeof feeJson.fastestFee !== 'undefined') {
@@ -166,52 +160,48 @@
       const feeRateEl = document.getElementById('fee-rate-value');
 
       if (data.blockHeight !== null) {
-        blockHeightEl.innerText = '🔗 ' + data.blockHeight.toLocaleString('pt-BR');
+        // MUDANÇA: Removido o ícone '🔗 '
+        blockHeightEl.innerText = data.blockHeight.toLocaleString('pt-BR');
       } else {
         blockHeightEl.innerText = 'Erro Bloco';
-        blockHeightEl.style.fontSize = "0.8em"; // Reduzir um pouco se for erro
+        blockHeightEl.style.fontSize = "0.8em"; 
       }
 
       if (data.currentFee !== null) {
         feeRateEl.innerText = data.currentFee.toLocaleString('pt-BR') + ' sat/vB';
       } else {
-        // Não exibe "Erro" para a taxa se o bloco já deu erro, ou exibe um erro específico para taxa
         feeRateEl.innerText = 'Erro Taxa'; 
       }
       
-      // Se ambos falharem, a célula #block-info-cell já tem "Carregando..." como fallback inicial
-      // ou podemos limpar os spans se preferir
       if(data.blockHeight === null && data.currentFee === null) {
         blockHeightEl.innerText = 'Erro Dados';
-        feeRateEl.innerText = ''; // Limpa a taxa se o bloco também falhou
+        blockHeightEl.style.fontSize = ""; // Reseta se ambos falharem
+        feeRateEl.innerText = ''; 
       }
     }
 
     async function atualizar() {
-      // Define o texto inicial para "Carregando..." nos spans corretos
       document.getElementById('btc-usd').innerText = 'Carregando...';
-      document.getElementById('btc-brl').innerText = 'Carregando...';
       document.getElementById('usd-brl').innerText = 'Carregando...';
+      document.getElementById('btc-brl').innerText = 'Carregando...';
       
       const blockHeightEl = document.getElementById('block-height-value');
       const feeRateEl = document.getElementById('fee-rate-value');
       
-      // Só mostra "Carregando..." se ainda não houver dados (ou se for a primeira carga)
       if (!blockHeightEl.textContent || blockHeightEl.textContent.includes('Erro') || blockHeightEl.textContent === 'Carregando...') {
         blockHeightEl.innerText = 'Carregando...';
-        blockHeightEl.style.fontSize = ""; // Reseta o tamanho da fonte
+        blockHeightEl.style.fontSize = ""; 
       }
       if (!feeRateEl.textContent || feeRateEl.textContent.includes('Erro')) {
-         feeRateEl.innerText = ''; // Inicialmente vazio, será preenchido ou mostrará erro de taxa
+         feeRateEl.innerText = ''; 
       }
 
       const data = await fetchData();
       updateDOM(data);
     }
 
-    // Chamada inicial para popular os dados
     atualizar();
-    setInterval(atualizar, 60000); // Atualiza a cada 1 minuto
+    setInterval(atualizar, 60000);
   </script>
 </body>
 </html>
