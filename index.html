@@ -5,18 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Painel</title>
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       background-color: #000;
       color: white;
       font-family: sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: row;
+    }
+    .column {
       display: flex;
       flex-direction: column;
-      height: 100vh;
-    }
-    .row {
-      display: flex;
       flex: 1;
     }
     .cell {
@@ -35,12 +40,12 @@
   </style>
 </head>
 <body>
-  <div class="row">
+  <div class="column">
     <div class="cell orange" id="btc-usd">106.279</div>
-    <div class="cell green" id="usd-brl">5.65</div>
-  </div>
-  <div class="row">
     <div class="cell light-orange" id="btc-brl">600.398</div>
+  </div>
+  <div class="column">
+    <div class="cell green" id="usd-brl">5.65</div>
     <div class="cell blue" id="block-height">🔗 897.597</div>
   </div>
 
