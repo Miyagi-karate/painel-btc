@@ -18,6 +18,13 @@
     body {
       display: flex;
       flex-direction: row;
+      transform: rotate(90deg);
+      transform-origin: left top;
+      width: 100vh;
+      height: 100vw;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
     .column {
       display: flex;
@@ -29,7 +36,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3.5em;
+      font-size: 4em;
       font-weight: bold;
       border: 1px solid #222;
     }
@@ -52,25 +59,27 @@
   <script>
     async function atualizar() {
       try {
-        // Cotação BTC/USDT (Binance)
-        const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
-        const btcJson = await btcRes.json();
-        const btc = parseFloat(btcJson.price);
+        // BTC/USD
+        const btcusdRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+        const btcusdJson = await btcusdRes.json();
+        const btcusd = parseFloat(btcusdJson.price);
 
-        // Dólar para real (conversão manual)
-        const usdbrl = 5.65;
+        // BTC/BRL direto da Binance
+        const btcbrlRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCBRL');
+        const btcbrlJson = await btcbrlRes.json();
+        const btcbrl = parseFloat(btcbrlJson.price);
 
-        // BTC em real
-        const btcbrl = btc * usdbrl;
+        // Dólar manual (temporário, ou substituir por API real)
+        const usdbrl = btcbrl / btcusd;
 
         // Número do bloco da mempool.space
         const blockRes = await fetch('https://mempool.space/api/blocks/tip/height');
         const block = await blockRes.json();
 
         // Atualiza os campos
-        document.getElementById('btc-usd').innerText = btc.toLocaleString('pt-BR', {maximumFractionDigits: 0});
+        document.getElementById('btc-usd').innerText = btcusd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+        document.getElementById('btc-brl').innerText = btcbrl.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
         document.getElementById('usd-brl').innerText = usdbrl.toFixed(2);
-        document.getElementById('btc-brl').innerText = btcbrl.toLocaleString('pt-BR', {maximumFractionDigits: 0});
         document.getElementById('block-height').innerText = '🔗 ' + block.toLocaleString('pt-BR');
       } catch (e) {
         console.error('Erro ao atualizar:', e);
