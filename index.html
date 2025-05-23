@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Painel</title>
-  <!-- Fontes: Orbitron para o placar, Poppins (mantida caso queira reverter/usar em outro lugar) e sans-serif como fallback -->
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
+  <!-- Fontes: Poppins para o placar, Poppins (mantida caso queira reverter/usar em outro lugar) e sans-serif como fallback -->
+   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
@@ -64,7 +63,7 @@
       display: flex;         /* Para alinhar os dígitos e pontos */
       gap: 12px;             /* Espaço entre os dígitos/pontos */
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); /* Sombra do container */
-      font-family: 'Orbitron', sans-serif; /* Fonte para os dígitos */
+      font-family: 'Poppins', sans-serif; /* Fonte para os dígitos */
       align-items: center;   /* Alinha verticalmente os itens */
       justify-content: center; /* Centraliza o conteúdo do placar */
       /* Sobrescreve o font-size de .cell, pois os dígitos têm tamanho próprio */
@@ -201,7 +200,7 @@
         }
       } else {
         // Mensagem de erro estilizada para o contexto do placar
-        btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Orbitron, sans-serif;">Erro</span>';
+        btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Poppins, sans-serif;">Erro</span>';
       }
 
       const usdBrlEl = document.getElementById('usd-brl');
@@ -246,7 +245,7 @@
       const btcUsdEl = document.getElementById('btc-usd');
       // Mostra "Carregando..." de forma simples antes dos dígitos serem criados
       if (!btcUsdEl.querySelector('.digit-box') && !btcUsdEl.textContent.includes('Erro')) {
-          btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Orbitron, sans-serif;">Carregando...</span>';
+          btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Poppins, sans-serif;">Carregando...</span>';
       }
 
       document.getElementById('usd-brl').innerText = 'Carregando...';
