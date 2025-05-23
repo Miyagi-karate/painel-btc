@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Painel</title>
+  <!-- Fontes: Orbitron para o placar, Poppins (mantida caso queira reverter/usar em outro lugar) e sans-serif como fallback -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background-color: #000; /* Fundo geral preto */
+      background-color: #000; /* Fundo geral preto do painel */
       color: white;
       font-family: sans-serif; /* Fonte padrão para outras células */
       width: 100vw;
@@ -27,11 +29,11 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3.45em; /* Aumentado em 15% (original 3em) para USD/BRL, BTC/BRL, Bloco */
+      font-size: 3.45em; /* Aumentado em 15% para USD/BRL, BTC/BRL, Bloco */
       font-weight: bold;
       border: 1px solid #222;
       text-align: center;
-      padding: 10px; /* Padding padrão, será sobrescrito por #btc-usd se necessário */
+      padding: 10px;
       box-sizing: border-box;
       line-height: 1.1;
     }
@@ -54,24 +56,27 @@
       color: #e0e0e0;
     }
 
-    /* Estilos para BTC-USD (baseado no Relógio Flap) */
+    /* Estilos para BTC-USD (baseado no Placar Antigo) */
     #btc-usd {
-      background-color: #111; /* Cor de fundo do container do flap */
-      padding: 20px 30px;    /* Padding do container do flap */
-      border-radius: 25px;   /* Borda do container do flap */
-      gap: 10px;             /* Espaço entre os flaps/pontos */
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Sombra do container */
-      font-family: 'Poppins', sans-serif; /* Fonte para os flaps */
-      /* justify-content e align-items são herdados de .cell e centralizam os flaps */
-      /* color não é definido aqui, pois .flap-box e .dot-separator terão suas próprias cores */
-      /* font-size de .cell não se aplicará diretamente aos flaps, que terão tamanho fixo */
+      background-color: #DADADA; /* Fundo do container do placar */
+      padding: 20px 30px;    /* Padding do container do placar */
+      border-radius: 25px;   /* Borda do container do placar */
+      display: flex;         /* Para alinhar os dígitos e pontos */
+      gap: 12px;             /* Espaço entre os dígitos/pontos */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); /* Sombra do container */
+      font-family: 'Orbitron', sans-serif; /* Fonte para os dígitos */
+      align-items: center;   /* Alinha verticalmente os itens */
+      justify-content: center; /* Centraliza o conteúdo do placar */
+      /* Sobrescreve o font-size de .cell, pois os dígitos têm tamanho próprio */
+      font-size: initial; /* Reseta o font-size herdado de .cell */
+      border: none; /* Remove a borda padrão de .cell */
     }
 
-    .flap-box {
-      background-color: #333;
-      color: #fff;
+    .digit-box { /* Renomeado de .digit para evitar conflito com possível tag <digit> */
+      background-color: #1E1E1E; /* Preto fosco */
+      color: white;
       font-weight: 700;
-      font-size: 54px; /* Tamanho da fonte dos dígitos no flap */
+      font-size: 60px; /* Tamanho da fonte dos dígitos */
       width: 70px;
       height: 90px;
       display: flex;
@@ -80,34 +85,23 @@
       border-radius: 12px;
       position: relative;
       box-shadow:
-        inset 0 -3px 5px rgba(0,0,0,0.7),
-        inset 0 3px 5px rgba(255,255,255,0.1),
-        0 5px 15px rgba(0,0,0,0.5);
+        0 0 0 3px #ffffff,   /* Borda branca interna */
+        0 0 0 6px #FFA500,   /* Borda laranja externa */
+        inset 0 4px 6px rgba(0,0,0,0.8),  /* Sombra superior interna */
+        inset 0 -4px 6px rgba(255,255,255,0.15); /* Brilho inferior interno */
     }
 
-    .flap-box::after {
-      content: '';
-      position: absolute;
-      width: 90%;
-      height: 2px;
-      background-color: rgba(255, 255, 255, 0.2);
-      top: 50%;
-      left: 5%;
-      transform: translateY(-50%);
-    }
-
-    .dot-separator { /* Renomeado de .dot para evitar conflitos */
-      color: #fff;
-      font-size: 54px; /* Mesmo tamanho dos dígitos para consistência */
-      font-weight: 700;
-      margin: 0 5px; /* Espaçamento do ponto separador */
-      line-height: 90px; /* Para alinhar verticalmente com os flap-boxes */
-      align-self: center; /* Garante alinhamento vertical com os flaps */
+    .dot-separator-placar { /* Renomeado para evitar conflito com outros .dot */
+      color: #1E1E1E; /* Cor do ponto igual ao fundo do dígito */
+      font-size: 60px; /* Mesmo tamanho dos dígitos */
+      margin: 0 5px;   /* Espaçamento do ponto separador */
+      font-weight: bold;
+      line-height: 90px; /* Para alinhar verticalmente com os digit-box */
+      align-self: center;
     }
   </style>
 </head>
 <body>
-  <!-- A classe .orange foi removida de btc-usd pois o estilo é totalmente novo -->
   <div class="cell" id="btc-usd">Carregando...</div>
   <div class="cell green" id="usd-brl">Carregando...</div>
   <div class="cell light-orange" id="btc-brl">Carregando...</div>
@@ -124,8 +118,8 @@
         blockHeight: null,
         currentFee: null,
       };
-      // ... (código de busca de dados permanece o mesmo) ...
-            // Cotação BTC/USDT (Binance)
+
+      // Cotação BTC/USDT (Binance)
       try {
         const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
         if (!btcRes.ok) throw new Error(`Binance API error: ${btcRes.status} ${btcRes.statusText}`);
@@ -188,25 +182,26 @@
       if (data.btcUsd !== null) {
         btcUsdEl.innerHTML = ''; // Limpa conteúdo anterior
 
-        // Remove casas decimais e formata com separador de milhar (ponto para pt-BR)
         const integerValue = Math.floor(data.btcUsd);
-        const formattedNumberStr = integerValue.toLocaleString('pt-BR', {maximumFractionDigits: 0}); // Ex: "70.123"
+        // Formata com separador de milhar (ponto para pt-BR) e sem casas decimais
+        const formattedNumberStr = integerValue.toLocaleString('pt-BR', {maximumFractionDigits: 0});
 
         for (const char of formattedNumberStr) {
           if (char === '.') { // O separador de milhar do pt-BR é '.'
             const dotEl = document.createElement('div');
-            dotEl.className = 'dot-separator';
-            dotEl.textContent = '.'; // Ou pode ser vazio se o estilo do .dot-separator já fizer o visual
+            dotEl.className = 'dot-separator-placar';
+            dotEl.textContent = '.';
             btcUsdEl.appendChild(dotEl);
           } else if (/\d/.test(char)) { // Se for um dígito
-            const flapBox = document.createElement('div');
-            flapBox.className = 'flap-box';
-            flapBox.textContent = char;
-            btcUsdEl.appendChild(flapBox);
+            const digitBox = document.createElement('div');
+            digitBox.className = 'digit-box';
+            digitBox.textContent = char;
+            btcUsdEl.appendChild(digitBox);
           }
         }
       } else {
-        btcUsdEl.innerHTML = '<span style="font-size: 0.5em; color: #ccc;">Erro</span>'; // Mensagem de erro menor dentro do estilo flap
+        // Mensagem de erro estilizada para o contexto do placar
+        btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Orbitron, sans-serif;">Erro</span>';
       }
 
       const usdBrlEl = document.getElementById('usd-brl');
@@ -248,12 +243,10 @@
     }
 
     async function atualizar() {
-      // Para btc-usd, o updateDOM irá reconstruir a estrutura de flaps
-      // Para as outras, apenas atualiza o texto.
       const btcUsdEl = document.getElementById('btc-usd');
-      // Mostra "Carregando..." de forma simples antes dos flaps serem criados
-      if (!btcUsdEl.querySelector('.flap-box')) {
-          btcUsdEl.innerHTML = '<span style="font-size: 0.5em; color: #ccc;">Carregando...</span>';
+      // Mostra "Carregando..." de forma simples antes dos dígitos serem criados
+      if (!btcUsdEl.querySelector('.digit-box') && !btcUsdEl.textContent.includes('Erro')) {
+          btcUsdEl.innerHTML = '<span style="font-size: 24px; color: #1E1E1E; font-family: Orbitron, sans-serif;">Carregando...</span>';
       }
 
       document.getElementById('usd-brl').innerText = 'Carregando...';
