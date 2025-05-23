@@ -51,16 +51,16 @@
       /* Tamanho da fonte herdado de .cell (3.45em) */
     }
     #fee-rate-value {
-      font-size: 0.6em; /* Mantido o tamanho original, NÃO aumentado */
+      font-size: 0.55em; /* Mantido o tamanho original, NÃO aumentado */
       margin-top: 8px;
       color: #e0e0e0;
     }
 
     /* Estilos para BTC-USD (baseado no Placar Antigo) */
     #btc-usd {
-      background-color: #DADADA; /* Fundo do container do placar */
-      padding: 20px 30px;    /* Padding do container do placar */
-      border-radius: 25px;   /* Borda do container do placar */
+      background-color: #141616; /* Fundo do container do placar */
+      padding: 0 3px;    /* Padding do container do placar */
+      border-radius: 0;   /* Borda do container do placar */
       display: flex;         /* Para alinhar os dígitos e pontos */
       gap: 12px;             /* Espaço entre os dígitos/pontos */
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); /* Sombra do container */
@@ -73,10 +73,10 @@
     }
 
     .digit-box { /* Renomeado de .digit para evitar conflito com possível tag <digit> */
-      background-color: #1E1E1E; /* Preto fosco */
+      background-color: #0B0A0F; /* Preto fosco */
       color: white;
       font-weight: 700;
-      font-size: 60px; /* Tamanho da fonte dos dígitos */
+      font-size: 55px; /* Tamanho da fonte dos dígitos */
       width: 70px;
       height: 90px;
       display: flex;
@@ -85,8 +85,8 @@
       border-radius: 12px;
       position: relative;
       box-shadow:
-        0 0 0 3px #ffffff,   /* Borda branca interna */
-        0 0 0 6px #FFA500,   /* Borda laranja externa */
+        0 0 0 2px #ffffff,   /* Borda branca interna */
+        0 0 0 4px #FFA500,   /* Borda laranja externa */
         inset 0 4px 6px rgba(0,0,0,0.8),  /* Sombra superior interna */
         inset 0 -4px 6px rgba(255,255,255,0.15); /* Brilho inferior interno */
     }
