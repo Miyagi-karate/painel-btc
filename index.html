@@ -17,17 +17,16 @@
     }
     body {
       display: flex;
-      flex-direction: column; /* MUDANÇA: Itens empilhados verticalmente */
+      flex-direction: column; /* Itens empilhados verticalmente */
       height: 100vh; /* Garante que o body ocupe toda a altura */
     }
-    /* .column não é mais necessário para o layout principal */
 
     .cell {
       flex: 1; /* Cada célula ocupa espaço vertical igual */
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3em; /* MUDANÇA: Reduzido um pouco para acomodar 4 itens na vertical */
+      font-size: 3.45em; /* Aumentado em 15% (original 3em) */
       font-weight: bold;
       border: 1px solid #222;
       text-align: center;
@@ -49,14 +48,31 @@
       /* O tamanho da fonte é herdado de .cell */
     }
     #fee-rate-value {
-      font-size: 0.6em; /* 60% do tamanho da fonte do elemento pai (.cell) */
+      font-size: 0.69em; /* Aumentado em 15% (original 0.6em), relativo ao pai .cell */
       margin-top: 8px;
       color: #e0e0e0;
+    }
+
+    /* Estilos para o novo layout do BTC-USD */
+    #btc-usd {
+      align-items: baseline; /* Alinha os filhos (símbolo, inteiro, decimal) pela baseline */
+      /* justify-content: center; é herdado de .cell */
+    }
+    #btc-usd .currency-symbol {
+      font-size: 0.6em; /* Relativo ao font-size de #btc-usd (que é 3.45em) */
+      margin-right: 0.1em;
+    }
+    #btc-usd .integer-part {
+      font-size: 1em; /* Tamanho principal, herdado de #btc-usd */
+    }
+    #btc-usd .decimal-part {
+      font-size: 0.5em; /* Relativo ao font-size de #btc-usd */
+      margin-left: 0.05em;
+      vertical-align: super; /* Tenta alinhar como sobrescrito */
     }
   </style>
 </head>
 <body>
-  <!-- MUDANÇA: Ordem e estrutura para coluna única -->
   <div class="cell orange" id="btc-usd">Carregando...</div>
   <div class="cell green" id="usd-brl">Carregando...</div>
   <div class="cell light-orange" id="btc-brl">Carregando...</div>
@@ -136,9 +152,36 @@
     function updateDOM(data) {
       const btcUsdEl = document.getElementById('btc-usd');
       if (data.btcUsd !== null) {
-        btcUsdEl.innerText = data.btcUsd.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+        btcUsdEl.innerHTML = ''; // Limpa conteúdo anterior (ex: "Carregando...")
+
+        const symbolSpan = document.createElement('span');
+        symbolSpan.className = 'currency-symbol';
+        symbolSpan.textContent = '$'; // Símbolo do Dólar
+
+        const numberStr = data.btcUsd.toFixed(2); // Ex: "70123.45"
+        const parts = numberStr.split('.');
+        const integerPartStr = parts[0];
+        const decimalPartStr = parts[1] || '00';
+
+        const integerSpan = document.createElement('span');
+        integerSpan.className = 'integer-part';
+        // Formata a parte inteira com separador de milhar pt-BR
+        integerSpan.textContent = parseInt(integerPartStr).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+
+        const decimalSpan = document.createElement('span');
+        decimalSpan.className = 'decimal-part';
+        decimalSpan.textContent = decimalPartStr;
+
+        btcUsdEl.appendChild(symbolSpan);
+        btcUsdEl.appendChild(integerSpan);
+        btcUsdEl.appendChild(decimalSpan);
+        
+        // Garante que os estilos flex de .cell sejam aplicados corretamente para o alinhamento baseline
+        // A regra #btc-usd no CSS já define align-items: baseline
       } else {
-        btcUsdEl.innerText = 'Erro';
+        btcUsdEl.innerHTML = 'Erro'; // Usa innerHTML para limpar spans caso existam
+         // As propriedades de .cell (display:flex, justify-content: center, align-items: center)
+         // vão centralizar o texto "Erro"
       }
 
       const usdBrlEl = document.getElementById('usd-brl');
@@ -160,7 +203,6 @@
       const feeRateEl = document.getElementById('fee-rate-value');
 
       if (data.blockHeight !== null) {
-        // MUDANÇA: Removido o ícone '🔗 '
         blockHeightEl.innerText = data.blockHeight.toLocaleString('pt-BR');
       } else {
         blockHeightEl.innerText = 'Erro Bloco';
@@ -175,12 +217,14 @@
       
       if(data.blockHeight === null && data.currentFee === null) {
         blockHeightEl.innerText = 'Erro Dados';
-        blockHeightEl.style.fontSize = ""; // Reseta se ambos falharem
+        blockHeightEl.style.fontSize = ""; 
         feeRateEl.innerText = ''; 
       }
     }
 
     async function atualizar() {
+      // Limpa o conteúdo para exibir "Carregando..."
+      // Para btc-usd, o updateDOM irá reconstruir a estrutura de spans
       document.getElementById('btc-usd').innerText = 'Carregando...';
       document.getElementById('usd-brl').innerText = 'Carregando...';
       document.getElementById('btc-brl').innerText = 'Carregando...';
@@ -188,6 +232,7 @@
       const blockHeightEl = document.getElementById('block-height-value');
       const feeRateEl = document.getElementById('fee-rate-value');
       
+      // Mantém "Carregando..." ou "Erro" se já estiverem assim, ou limpa para nova carga
       if (!blockHeightEl.textContent || blockHeightEl.textContent.includes('Erro') || blockHeightEl.textContent === 'Carregando...') {
         blockHeightEl.innerText = 'Carregando...';
         blockHeightEl.style.fontSize = ""; 
