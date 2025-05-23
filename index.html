@@ -70,7 +70,7 @@
       font-size: initial; /* Reseta o font-size herdado de .cell */
       border: none; /* Remove a borda padrão de .cell */
     }
-    .digit-box:not(:last-child) {margin-left:6px!important;}
+    .digit-box:not(:nth-child(3)):not(:nth-child(6)) {margin-right:6px!important;}
 
     .digit-box { /* Renomeado de .digit para evitar conflito com possível tag <digit> */
       background-color: #0B0A0F; /* Preto fosco */
