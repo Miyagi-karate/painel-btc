@@ -4,72 +4,110 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Painel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <style>
-    /* Estilos originais */
     html, body {
       margin: 0;
       padding: 0;
-      background-color: #000;
+      background-color: #000; /* Fundo geral preto */
       color: white;
-      font-family: sans-serif;
+      font-family: sans-serif; /* Fonte padrão para outras células */
       width: 100vw;
       height: 100vh;
-      overflow: hidden; /* Evita barras de rolagem */
+      overflow: hidden;
     }
     body {
       display: flex;
-      flex-direction: column; /* Itens empilhados verticalmente */
-      height: 100vh; /* Garante que o body ocupe toda a altura */
+      flex-direction: column;
+      height: 100vh;
     }
 
     .cell {
-      flex: 1; /* Cada célula ocupa espaço vertical igual */
+      flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3.45em; /* Aumentado em 15% (original 3em) */
+      font-size: 3.45em; /* Aumentado em 15% (original 3em) para USD/BRL, BTC/BRL, Bloco */
       font-weight: bold;
       border: 1px solid #222;
       text-align: center;
-      padding: 10px;
+      padding: 10px; /* Padding padrão, será sobrescrito por #btc-usd se necessário */
       box-sizing: border-box;
       line-height: 1.1;
     }
-    .orange { color: orange; }
-    .light-orange { color: #ffa500; }
+    /* Cores para as outras células */
     .green { color: #00ff66; }
+    .light-orange { color: #ffa500; }
     .blue { color: #66ccff; }
 
     /* Estilos para a célula combinada de bloco e taxa */
     #block-info-cell {
-      flex-direction: column; /* Empilha o número do bloco e a taxa verticalmente */
+      flex-direction: column;
       line-height: 1.2;
     }
     #block-height-value {
-      /* O tamanho da fonte é herdado de .cell (agora 3.45em) */
+      /* Tamanho da fonte herdado de .cell (3.45em) */
     }
     #fee-rate-value {
-      font-size: 0.6em; /* Mantido o tamanho original (60% do tamanho base da célula), NÃO aumentado em 15% */
+      font-size: 0.6em; /* Mantido o tamanho original, NÃO aumentado */
       margin-top: 8px;
       color: #e0e0e0;
     }
 
-    /* Estilos específicos para o BTC-USD baseados no exemplo 1952 */
+    /* Estilos para BTC-USD (baseado no Relógio Flap) */
     #btc-usd {
-      color: #8B1A1A; /* Cor do texto do exemplo 1952 (Vermelho escuro) */
-      background-color: #FFFFFF; /* Cor de fundo do exemplo 1952 (Branco) */
-      font-family: 'Poppins', sans-serif; /* Fonte do exemplo 1952 */
-      border-radius: 18px; /* Borda arredondada do exemplo 1952 */
-      box-shadow: inset 0 0 5px rgba(0,0,0,0.1); /* Sombra interna do exemplo 1952 */
-      /* Padding é herdado de .cell (10px) */
-      /* font-size é herdado de .cell (3.45em) */
+      background-color: #111; /* Cor de fundo do container do flap */
+      padding: 20px 30px;    /* Padding do container do flap */
+      border-radius: 25px;   /* Borda do container do flap */
+      gap: 10px;             /* Espaço entre os flaps/pontos */
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); /* Sombra do container */
+      font-family: 'Poppins', sans-serif; /* Fonte para os flaps */
+      /* justify-content e align-items são herdados de .cell e centralizam os flaps */
+      /* color não é definido aqui, pois .flap-box e .dot-separator terão suas próprias cores */
+      /* font-size de .cell não se aplicará diretamente aos flaps, que terão tamanho fixo */
+    }
+
+    .flap-box {
+      background-color: #333;
+      color: #fff;
+      font-weight: 700;
+      font-size: 54px; /* Tamanho da fonte dos dígitos no flap */
+      width: 70px;
+      height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      position: relative;
+      box-shadow:
+        inset 0 -3px 5px rgba(0,0,0,0.7),
+        inset 0 3px 5px rgba(255,255,255,0.1),
+        0 5px 15px rgba(0,0,0,0.5);
+    }
+
+    .flap-box::after {
+      content: '';
+      position: absolute;
+      width: 90%;
+      height: 2px;
+      background-color: rgba(255, 255, 255, 0.2);
+      top: 50%;
+      left: 5%;
+      transform: translateY(-50%);
+    }
+
+    .dot-separator { /* Renomeado de .dot para evitar conflitos */
+      color: #fff;
+      font-size: 54px; /* Mesmo tamanho dos dígitos para consistência */
+      font-weight: 700;
+      margin: 0 5px; /* Espaçamento do ponto separador */
+      line-height: 90px; /* Para alinhar verticalmente com os flap-boxes */
+      align-self: center; /* Garante alinhamento vertical com os flaps */
     }
   </style>
-  <!-- Adicionado link para a fonte Poppins usada no exemplo 1952 -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Removida a classe 'orange' do BTC-USD, pois os estilos de cor e fundo são definidos pelo ID #btc-usd -->
+  <!-- A classe .orange foi removida de btc-usd pois o estilo é totalmente novo -->
   <div class="cell" id="btc-usd">Carregando...</div>
   <div class="cell green" id="usd-brl">Carregando...</div>
   <div class="cell light-orange" id="btc-brl">Carregando...</div>
@@ -86,8 +124,8 @@
         blockHeight: null,
         currentFee: null,
       };
-
-      // Cotação BTC/USDT (Binance)
+      // ... (código de busca de dados permanece o mesmo) ...
+            // Cotação BTC/USDT (Binance)
       try {
         const btcRes = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
         if (!btcRes.ok) throw new Error(`Binance API error: ${btcRes.status} ${btcRes.statusText}`);
@@ -142,17 +180,33 @@
       } catch (e) {
         console.error('Erro ao buscar taxas da rede:', e);
       }
-      
       return results;
     }
 
     function updateDOM(data) {
       const btcUsdEl = document.getElementById('btc-usd');
       if (data.btcUsd !== null) {
-        // Formatado com 2 casas decimais para USD, usando innerText como no código original
-        btcUsdEl.innerText = data.btcUsd.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        btcUsdEl.innerHTML = ''; // Limpa conteúdo anterior
+
+        // Remove casas decimais e formata com separador de milhar (ponto para pt-BR)
+        const integerValue = Math.floor(data.btcUsd);
+        const formattedNumberStr = integerValue.toLocaleString('pt-BR', {maximumFractionDigits: 0}); // Ex: "70.123"
+
+        for (const char of formattedNumberStr) {
+          if (char === '.') { // O separador de milhar do pt-BR é '.'
+            const dotEl = document.createElement('div');
+            dotEl.className = 'dot-separator';
+            dotEl.textContent = '.'; // Ou pode ser vazio se o estilo do .dot-separator já fizer o visual
+            btcUsdEl.appendChild(dotEl);
+          } else if (/\d/.test(char)) { // Se for um dígito
+            const flapBox = document.createElement('div');
+            flapBox.className = 'flap-box';
+            flapBox.textContent = char;
+            btcUsdEl.appendChild(flapBox);
+          }
+        }
       } else {
-        btcUsdEl.innerText = 'Erro';
+        btcUsdEl.innerHTML = '<span style="font-size: 0.5em; color: #ccc;">Erro</span>'; // Mensagem de erro menor dentro do estilo flap
       }
 
       const usdBrlEl = document.getElementById('usd-brl');
@@ -177,38 +231,43 @@
         blockHeightEl.innerText = data.blockHeight.toLocaleString('pt-BR');
       } else {
         blockHeightEl.innerText = 'Erro Bloco';
-        blockHeightEl.style.fontSize = "0.8em"; 
+        blockHeightEl.style.fontSize = "0.8em";
       }
 
       if (data.currentFee !== null) {
         feeRateEl.innerText = data.currentFee.toLocaleString('pt-BR') + ' sat/vB';
       } else {
-        feeRateEl.innerText = 'Erro Taxa'; 
+        feeRateEl.innerText = 'Erro Taxa';
       }
-      
+
       if(data.blockHeight === null && data.currentFee === null) {
         blockHeightEl.innerText = 'Erro Dados';
-        blockHeightEl.style.fontSize = ""; 
-        feeRateEl.innerText = ''; 
+        blockHeightEl.style.fontSize = "";
+        feeRateEl.innerText = '';
       }
     }
 
     async function atualizar() {
-      // Limpa o conteúdo para exibir "Carregando..."
-      document.getElementById('btc-usd').innerText = 'Carregando...';
+      // Para btc-usd, o updateDOM irá reconstruir a estrutura de flaps
+      // Para as outras, apenas atualiza o texto.
+      const btcUsdEl = document.getElementById('btc-usd');
+      // Mostra "Carregando..." de forma simples antes dos flaps serem criados
+      if (!btcUsdEl.querySelector('.flap-box')) {
+          btcUsdEl.innerHTML = '<span style="font-size: 0.5em; color: #ccc;">Carregando...</span>';
+      }
+
       document.getElementById('usd-brl').innerText = 'Carregando...';
       document.getElementById('btc-brl').innerText = 'Carregando...';
-      
+
       const blockHeightEl = document.getElementById('block-height-value');
       const feeRateEl = document.getElementById('fee-rate-value');
-      
-      // Mantém "Carregando..." ou "Erro" se já estiverem assim, ou limpa para nova carga
+
       if (!blockHeightEl.textContent || blockHeightEl.textContent.includes('Erro') || blockHeightEl.textContent === 'Carregando...') {
         blockHeightEl.innerText = 'Carregando...';
-        blockHeightEl.style.fontSize = ""; 
+        blockHeightEl.style.fontSize = "";
       }
       if (!feeRateEl.textContent || feeRateEl.textContent.includes('Erro')) {
-         feeRateEl.innerText = ''; 
+         feeRateEl.innerText = '';
       }
 
       const data = await fetchData();
