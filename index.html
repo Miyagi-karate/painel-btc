@@ -57,7 +57,6 @@
 
     /* Estilos para BTC-USD (baseado no Placar Antigo) */
     #btc-usd {
-      margin-left:10px!important;
       background-color: #141616; /* Fundo do container do placar */
       padding: 0 3px;    /* Padding do container do placar */
       border-radius: 0;   /* Borda do container do placar */
@@ -71,7 +70,7 @@
       font-size: initial; /* Reseta o font-size herdado de .cell */
       border: none; /* Remove a borda padrão de .cell */
     }
-    #btc-usd:not(:last-child) {}
+    .digit-box:not(:last-child) {margin-left:6px!important;}
 
     .digit-box { /* Renomeado de .digit para evitar conflito com possível tag <digit> */
       background-color: #0B0A0F; /* Preto fosco */
