@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Painel</title>
   <style>
+    /* Estilos originais */
     html, body {
       margin: 0;
       padding: 0;
@@ -45,35 +46,31 @@
       line-height: 1.2;
     }
     #block-height-value {
-      /* O tamanho da fonte é herdado de .cell */
+      /* O tamanho da fonte é herdado de .cell (agora 3.45em) */
     }
     #fee-rate-value {
-      font-size: 0.69em; /* Aumentado em 15% (original 0.6em), relativo ao pai .cell */
+      font-size: 0.6em; /* Mantido o tamanho original (60% do tamanho base da célula), NÃO aumentado em 15% */
       margin-top: 8px;
       color: #e0e0e0;
     }
 
-    /* Estilos para o novo layout do BTC-USD */
+    /* Estilos específicos para o BTC-USD baseados no exemplo 1952 */
     #btc-usd {
-      align-items: baseline; /* Alinha os filhos (símbolo, inteiro, decimal) pela baseline */
-      /* justify-content: center; é herdado de .cell */
-    }
-    #btc-usd .currency-symbol {
-      font-size: 0.6em; /* Relativo ao font-size de #btc-usd (que é 3.45em) */
-      margin-right: 0.1em;
-    }
-    #btc-usd .integer-part {
-      font-size: 1em; /* Tamanho principal, herdado de #btc-usd */
-    }
-    #btc-usd .decimal-part {
-      font-size: 0.5em; /* Relativo ao font-size de #btc-usd */
-      margin-left: 0.05em;
-      vertical-align: super; /* Tenta alinhar como sobrescrito */
+      color: #8B1A1A; /* Cor do texto do exemplo 1952 (Vermelho escuro) */
+      background-color: #FFFFFF; /* Cor de fundo do exemplo 1952 (Branco) */
+      font-family: 'Poppins', sans-serif; /* Fonte do exemplo 1952 */
+      border-radius: 18px; /* Borda arredondada do exemplo 1952 */
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1); /* Sombra interna do exemplo 1952 */
+      /* Padding é herdado de .cell (10px) */
+      /* font-size é herdado de .cell (3.45em) */
     }
   </style>
+  <!-- Adicionado link para a fonte Poppins usada no exemplo 1952 -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="cell orange" id="btc-usd">Carregando...</div>
+  <!-- Removida a classe 'orange' do BTC-USD, pois os estilos de cor e fundo são definidos pelo ID #btc-usd -->
+  <div class="cell" id="btc-usd">Carregando...</div>
   <div class="cell green" id="usd-brl">Carregando...</div>
   <div class="cell light-orange" id="btc-brl">Carregando...</div>
   <div class="cell blue" id="block-info-cell">
@@ -152,36 +149,10 @@
     function updateDOM(data) {
       const btcUsdEl = document.getElementById('btc-usd');
       if (data.btcUsd !== null) {
-        btcUsdEl.innerHTML = ''; // Limpa conteúdo anterior (ex: "Carregando...")
-
-        const symbolSpan = document.createElement('span');
-        symbolSpan.className = 'currency-symbol';
-        symbolSpan.textContent = '$'; // Símbolo do Dólar
-
-        const numberStr = data.btcUsd.toFixed(2); // Ex: "70123.45"
-        const parts = numberStr.split('.');
-        const integerPartStr = parts[0];
-        const decimalPartStr = parts[1] || '00';
-
-        const integerSpan = document.createElement('span');
-        integerSpan.className = 'integer-part';
-        // Formata a parte inteira com separador de milhar pt-BR
-        integerSpan.textContent = parseInt(integerPartStr).toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-
-        const decimalSpan = document.createElement('span');
-        decimalSpan.className = 'decimal-part';
-        decimalSpan.textContent = decimalPartStr;
-
-        btcUsdEl.appendChild(symbolSpan);
-        btcUsdEl.appendChild(integerSpan);
-        btcUsdEl.appendChild(decimalSpan);
-        
-        // Garante que os estilos flex de .cell sejam aplicados corretamente para o alinhamento baseline
-        // A regra #btc-usd no CSS já define align-items: baseline
+        // Formatado com 2 casas decimais para USD, usando innerText como no código original
+        btcUsdEl.innerText = data.btcUsd.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       } else {
-        btcUsdEl.innerHTML = 'Erro'; // Usa innerHTML para limpar spans caso existam
-         // As propriedades de .cell (display:flex, justify-content: center, align-items: center)
-         // vão centralizar o texto "Erro"
+        btcUsdEl.innerText = 'Erro';
       }
 
       const usdBrlEl = document.getElementById('usd-brl');
@@ -224,7 +195,6 @@
 
     async function atualizar() {
       // Limpa o conteúdo para exibir "Carregando..."
-      // Para btc-usd, o updateDOM irá reconstruir a estrutura de spans
       document.getElementById('btc-usd').innerText = 'Carregando...';
       document.getElementById('usd-brl').innerText = 'Carregando...';
       document.getElementById('btc-brl').innerText = 'Carregando...';
