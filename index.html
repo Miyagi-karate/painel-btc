@@ -101,6 +101,23 @@
       line-height: 90px; /* Para alinhar verticalmente com os digit-box */
       align-self: center;
     }
+
+    /* Cores "originais" para inversão inteligente */
+    html {
+      -webkit-filter: invert(100%) hue-rotate(180deg);
+      filter: invert(100%) hue-rotate(180deg);
+    }
+
+    /* Ajustes específicos para elementos com cores controladas */
+    #btc-usd, .digit-box {
+      -webkit-filter: invert(100%) hue-rotate(180deg);
+      filter: invert(100%) hue-rotate(180deg);
+    }
+
+    .green, .light-orange, .blue {
+      -webkit-filter: invert(100%) hue-rotate(180deg);
+      filter: invert(100%) hue-rotate(180deg);
+    }
   </style>
 </head>
 <body>
@@ -217,14 +234,13 @@
         // Encontra o separador decimal (vírgula para pt-BR)
         const decimalSeparatorIndex = formattedUsdBrl.indexOf(',');
 
-        if (decimalSeparatorIndex !== -1 && formattedUsdBrl.length > decimalSeparatorIndex + 2) {
+        if (decimalSeparatorIndex !== -1) {
           const integerPart = formattedUsdBrl.substring(0, decimalSeparatorIndex);
           const decimalPart = formattedUsdBrl.substring(decimalSeparatorIndex + 1);
-          const firstTwoDecimals = decimalPart.substring(0, 2);
-          const thirdDecimal = decimalPart.substring(2, 3);
 
-          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 75%;">${thirdDecimal}</span>`;
-        } else { // Fallback para casos inesperados ou menos de 3 casas
+          // Cria um span para os decimais, sem alterar o tamanho da fonte
+          usdBrlEl.innerHTML = `${integerPart},<span style="font-size: 100%;">${decimalPart}</span>`;
+        } else { // Fallback para casos inesperados ou sem decimais
           usdBrlEl.innerText = formattedUsdBrl;
         }
       } else {
