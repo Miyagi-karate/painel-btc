@@ -30,7 +30,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 3.45em; /* Aumentado em 15% para USD/BRL, BTC/BRL, Bloco */
+      font-size: 3.55em; /* Aumentado em 15% para USD/BRL, BTC/BRL, Bloco */
       font-weight: bold;
       border: 1px solid #222;
       text-align: center;
@@ -39,9 +39,9 @@
       line-height: 1.1;
     }
     /* Cores para as outras células */
-    .green { color: #00836d; }
+    .green { color: #1DB954; }
     .light-orange { color: #ffa500; }
-    .blue { color: #66ccff; }
+    .blue { color: #1E90FF; }
 
     /* Estilos para a célula combinada de bloco e taxa */
     #block-info-cell {
@@ -223,7 +223,7 @@
           const firstTwoDecimals = decimalPart.substring(0, 2);
           const thirdDecimal = decimalPart.substring(2, 3);
 
-          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 80%;display: contents;">${thirdDecimal}</span>`;
+          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 100%;display: contents;">${thirdDecimal}</span>`;
         } else { // Fallback para casos inesperados ou menos de 3 casas
           usdBrlEl.innerText = formattedUsdBrl;
         }
