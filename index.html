@@ -39,7 +39,7 @@
       line-height: 1.1;
     }
     /* Cores para as outras células */
-    .green { color: #1a652a; }
+    .green { color: #00836d; }
     .light-orange { color: #ffa500; }
     .blue { color: #66ccff; }
 
@@ -223,7 +223,7 @@
           const firstTwoDecimals = decimalPart.substring(0, 2);
           const thirdDecimal = decimalPart.substring(2, 3);
 
-          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 75%;">${thirdDecimal}</span>`;
+          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 80%;display: contents;">${thirdDecimal}</span>`;
         } else { // Fallback para casos inesperados ou menos de 3 casas
           usdBrlEl.innerText = formattedUsdBrl;
         }
