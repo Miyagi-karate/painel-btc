@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BTC Painel</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#000000">
   <!-- Fontes: Poppins para o placar, Poppins (mantida caso queira reverter/usar em outro lugar) e sans-serif como fallback -->
    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap" rel="stylesheet">
   <style>
@@ -37,7 +39,7 @@
       line-height: 1.1;
     }
     /* Cores para as outras células */
-    .green { color: #00ff66; }
+    .green { color: #1a652a; }
     .light-orange { color: #ffa500; }
     .blue { color: #66ccff; }
 
@@ -206,7 +208,25 @@
 
       const usdBrlEl = document.getElementById('usd-brl');
       if (data.usdBrl !== null) {
-        usdBrlEl.innerText = data.usdBrl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        // Formata para 3 casas decimais
+        const formattedUsdBrl = data.usdBrl.toLocaleString('pt-BR', {
+          minimumFractionDigits: 3,
+          maximumFractionDigits: 3
+        });
+
+        // Encontra o separador decimal (vírgula para pt-BR)
+        const decimalSeparatorIndex = formattedUsdBrl.indexOf(',');
+
+        if (decimalSeparatorIndex !== -1 && formattedUsdBrl.length > decimalSeparatorIndex + 2) {
+          const integerPart = formattedUsdBrl.substring(0, decimalSeparatorIndex);
+          const decimalPart = formattedUsdBrl.substring(decimalSeparatorIndex + 1);
+          const firstTwoDecimals = decimalPart.substring(0, 2);
+          const thirdDecimal = decimalPart.substring(2, 3);
+
+          usdBrlEl.innerHTML = `${integerPart},${firstTwoDecimals}<span style="font-size: 75%;">${thirdDecimal}</span>`;
+        } else { // Fallback para casos inesperados ou menos de 3 casas
+          usdBrlEl.innerText = formattedUsdBrl;
+        }
       } else {
         usdBrlEl.innerText = 'Erro';
       }
